@@ -7,11 +7,12 @@ import io.github.classgraph.ScanResult
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskAction
 
 class VaadinPackageScannerPlugin implements Plugin<Project> {
@@ -23,7 +24,7 @@ class VaadinPackageScannerPlugin implements Plugin<Project> {
 abstract class VaadinScanPackagesTask extends DefaultTask {
 
     @Input
-    abstract Property<String> getConfiguration()
+    abstract Property<String> getSourceSet()
 
     @Input
     abstract Property<String> getMarkerClassName()
@@ -43,9 +44,9 @@ abstract class VaadinScanPackagesTask extends DefaultTask {
     VaadinScanPackagesTask() {
         // setup
         setGroup('Vaadin Package Scanner')
-        setDescription('Update the allow list for pacakge scanning')
+        setDescription('Update the allow list for package scanning')
         // props
-        configuration.convention('runtimeClasspath')
+        sourceSet.convention('main')
         markerClassName.convention("com.vaadin.base.devserver.startup.DevModeStartupListener")
         handlesTypesAnnotationClassName.convention("javax.servlet.annotation.HandlesTypes")
         alwaysBlockRegexp.convention(/^com\.vaadin\.flow\.component($|\..*)/)
@@ -66,9 +67,14 @@ abstract class VaadinScanPackagesTask extends DefaultTask {
 
     @TaskAction
     void execute() {
-        logger.debug("Building class loader from configuration ${configuration.get()}")
-        Configuration runtimeConfig = project.configurations.getByName(configuration.get())
-        classLoader = new URLClassLoader(runtimeConfig.files*.toURI()*.toURL() as URL[])
+        logger.debug("Starting package scan")
+        logger.debug("Loading source sets")
+        SourceSetContainer ssc = project.sourceSets
+        logger.debug("Loading source set by name: ${sourceSet.get()}")
+        SourceSet ss = ssc.getByName(sourceSet.get())
+        def cp = ss.runtimeClasspath*.toURI()*.toURL()
+        logger.debug("Using classpath: $cp")
+        classLoader = new URLClassLoader(cp as URL[])
 
         logger.debug("Looking for marker class ${markerClassName.get()}")
         def devModeStartupListenerClass = loadClass(markerClassName.get())

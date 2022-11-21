@@ -3,13 +3,11 @@
  */
 package net.ofnir.gradle.vaadinpackagescanner
 
+import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Specification
 import spock.lang.TempDir
-import org.gradle.testkit.runner.GradleRunner
 
 class VaadinPackageScannerPluginFunctionalTest extends Specification {
-
-    public static final VAADIN_VERSION = "23.0.10"
 
     @TempDir
     private File projectDir
@@ -32,20 +30,20 @@ class VaadinPackageScannerPluginFunctionalTest extends Specification {
         buildFile << """
 plugins {
     id 'java'
-    id 'com.vaadin' version "${VAADIN_VERSION}"
+    id 'com.vaadin' version "${vaadinVersion}"
     id('net.ofnir.gradle.vaadin-package-scanner')
 }
 repositories {
     mavenCentral()
 }
 dependencies {
-    implementation platform("com.vaadin:vaadin-bom:${VAADIN_VERSION}")
-    implementation "com.vaadin:vaadin-spring-boot-starter:${VAADIN_VERSION}"
+    implementation platform("com.vaadin:vaadin-bom:${vaadinVersion}")
+    implementation "com.vaadin:vaadin-spring-boot-starter:${vaadinVersion}"
 }
 """
 
         expect:
-        ! propsFile.exists()
+        !propsFile.exists()
 
         when:
         def runner = GradleRunner.create()
@@ -58,6 +56,17 @@ dependencies {
         then:
         result.output.contains("Updated Vaadin package allow list")
         propsFile.exists()
-        propsFile.text.contains('vaadin.whitelisted-packages')
+
+        when:
+        def props = new Properties()
+        propsFile.withReader { it -> props.load(it) }
+
+        then:
+        props.containsKey('vaadin.whitelisted-packages')
+        props.get('vaadin.whitelisted-packages') == expected
+
+        where:
+        vaadinVersion || expected
+        "23.2.8"      || "com.vaadin.flow.data.renderer,com.vaadin.flow.router,com.vaadin.flow.spring.scopes,com.vaadin.flow.spring.security,com.vaadin.flow.theme.lumo,com.vaadin.flow.theme.material"
     }
 }

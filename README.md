@@ -64,7 +64,7 @@ The default configuration aims to work out of the box with the current LTS versi
 vaadinScanPackages {
     // Gradle source set to search for deps; should represent the
     // effective runtime classpath
-    sourceSet = 'main'
+    sourceSetName = 'main'
     // The full qualified class name, that Vaadin uses itself to load
     // deps (usually the one with `HandlesTypes`
     markerClassName = 'com.vaadin.base.devserver.startup.DevModeStartupListener'

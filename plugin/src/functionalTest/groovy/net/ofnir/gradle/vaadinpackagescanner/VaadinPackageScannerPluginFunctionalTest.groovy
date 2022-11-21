@@ -57,7 +57,7 @@ dependencies {
         def result = runner.build()
 
         then:
-        result.output.contains("Updated Vaadin package allow list")
+        result.output.contains("Updated Vaadin package allow-list")
         propsFile.exists()
 
         when:

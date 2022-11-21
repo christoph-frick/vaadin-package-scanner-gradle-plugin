@@ -98,7 +98,7 @@ abstract class VaadinScanPackagesTask extends DefaultTask {
         }
         logger.debug("All packages: ${allPackages}")
 
-        def finalPackages = allPackages.findAll { !(it ==~ alwaysBlockRegexp.get()) }
+        def finalPackages = allPackages.findAll { !(it ==~ alwaysBlockRegexp.get()) }.sort()
         logger.debug("Allow list to write: ${finalPackages}")
 
         def propsFile = applicationProperties.get().asFile
@@ -135,7 +135,7 @@ class Scanner {
         this.classLoader = classLoader
     }
 
-    def scan(Class cls) {
+    Collection<String> scan(Class cls) {
         // scan result can not be reused
         try (ScanResult scanResult =
                 new ClassGraph() // .verbose()

@@ -3,8 +3,58 @@
 **WORK IN PROGRESS**
 
 Generate the setting `vaadin.whitelisted-packages` in
-`src/main/resources/application.properties` from the `runtimeClasspath`
-for Vaadin/Spring projects.
+`src/main/resources/application.properties` for Vaadin Flow/Spring
+projects.
+
+In a Vaadin Flow project, on startup there is intensive search for
+annotations, that influence the application.  E.g. Vaadin tries to find
+CSS and JavaScript files to include into the build or looks for NPM
+packages to download.
+
+In a growing project, this is a growing overhead on each start,
+especially while developing.  There even is a warning in the dev server,
+when this takes longer than 10 seconds, which is an unacceptable long
+time especially if you don't have hot-reload available.
+
+To limit the locations where to look for the annotations, there are two
+settings to allow or deny a list of package names.  Since adding or
+creating new components is the rarest event, that needs changing this
+lists, recreating the allow-list when needed, is the most efficient way
+to deal with this.
+
+And this is what is plugin for:
+
+- Add the plugin in your `build.gradle` file, where Vaadin Flow is used.
+- Optionally configure the plugin.
+- Run `./gradlew vaadinScanPackages` to re-create the allow-list from
+  the current class-path.
+- When adding new deps or creating new components yourself, re-run the
+  task to update the setting.
+
+
+## Setup
+
+Add the plugin in your `build.gradle`
+
+```groovy
+plugins {
+    // ...
+    id 'net.ofnir.gradle.vaadin-package-scanner' version "${vaadinPackageScannerPluginVersion}"
+}
+```
+
+
+## Usage
+
+Run:
+
+```console
+# ./gradlew vaadinScanPackages
+...
+> Task :vaadinScanPackages
+Updated Vaadin package allow list (vaadin.whitelisted-packages) in .../src/main/resources/application.properties
+```
+
 
 ## Configuration
 

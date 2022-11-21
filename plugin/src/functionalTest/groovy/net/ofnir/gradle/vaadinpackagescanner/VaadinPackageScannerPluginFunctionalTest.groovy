@@ -30,11 +30,14 @@ class VaadinPackageScannerPluginFunctionalTest extends Specification {
         buildFile << """
 plugins {
     id 'java'
-    id 'com.vaadin' version "${vaadinVersion}"
+    id 'com.vaadin' version "${vaadinPluginVersion}"
     id('net.ofnir.gradle.vaadin-package-scanner')
 }
 repositories {
     mavenCentral()
+}
+vaadinScanPackages {
+${markerClassName ? "markerClassName = '${markerClassName}'" : ''}
 }
 dependencies {
     implementation platform("com.vaadin:vaadin-bom:${vaadinVersion}")
@@ -66,7 +69,8 @@ dependencies {
         props.get('vaadin.whitelisted-packages') == expected
 
         where:
-        vaadinVersion || expected
-        "23.2.8"      || "com.vaadin.flow.data.renderer,com.vaadin.flow.router,com.vaadin.flow.spring.scopes,com.vaadin.flow.spring.security,com.vaadin.flow.theme.lumo,com.vaadin.flow.theme.material"
+        vaadinPluginVersion | vaadinVersion | markerClassName                                     || expected
+        "0.14.9.1"          | "14.9.1"      | "com.vaadin.flow.server.startup.DevModeInitializer" || "com.vaadin.flow.router,com.vaadin.flow.theme.lumo,com.vaadin.flow.theme.material,com.vaadin.shrinkwrap"
+        "23.2.8"            | "23.2.8"      | null                                                || "com.vaadin.flow.data.renderer,com.vaadin.flow.router,com.vaadin.flow.spring.scopes,com.vaadin.flow.spring.security,com.vaadin.flow.theme.lumo,com.vaadin.flow.theme.material"
     }
 }
